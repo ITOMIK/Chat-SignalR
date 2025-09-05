@@ -22,7 +22,7 @@ namespace Chat_SignalR.Data
             {
                 throw new Exception("No User");
             }
-            await messageRepository.Add(new Models.Message() { BreanchId=breanchId, UserId= user.id, Text=message});
+            await messageRepository.Add(new Models.Message() { BreanchId=breanchId, UserId= user.id, Text= message,publicId = Guid.NewGuid() });
             await Clients.Group(breanchId.ToString()).SendAsync("ReceiveMessage", user.name, message);
         }
 

@@ -20,7 +20,7 @@ namespace Chat_SignalR.Controllers.api
         {
             if (ModelState.IsValid)
             {
-                var b = new Breanch() { Name = model.Name, Description = model.Description };
+                var b = new Breanch() { Name = model.Name, Description = model.Description, PublicId = Guid.NewGuid() };
                 await repository.Add(b);
                 return Ok();
             }
