@@ -2,7 +2,6 @@
 using Chat_SignalR.Models.ApiModels;
 using Chat_SignalR.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 
 namespace Chat_SignalR.Services
 {

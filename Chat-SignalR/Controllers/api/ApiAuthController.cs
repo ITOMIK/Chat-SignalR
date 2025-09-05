@@ -2,7 +2,6 @@
 using Chat_SignalR.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 
 namespace Chat_SignalR.Controllers.api
 {

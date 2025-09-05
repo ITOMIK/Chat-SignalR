@@ -1,4 +1,5 @@
-﻿using Chat_SignalR.Data;
+﻿using System.Xml.Linq;
+using Chat_SignalR.Data;
 using Chat_SignalR.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,5 +23,15 @@ namespace Chat_SignalR.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.name == name);
         }
+
+        public async Task<User?> GetByPublicId(string pId)
+        {
+            if (!Guid.TryParse(pId, out var guid))
+                throw new ArgumentException("Invalid GUID", nameof(pId));
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.publicId == guid);
+            return user;
+        }
+
     }
 }

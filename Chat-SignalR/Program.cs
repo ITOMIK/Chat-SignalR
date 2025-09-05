@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSignalR();      // подключема сервисы SignalR
+builder.Services.AddSignalR().AddHubOptions<ChatHub>(options => options.EnableDetailedErrors = true);      // подключема сервисы SignalR
 
 
 // 1. Подключаем настройки из appsettings.json
@@ -29,6 +29,8 @@ builder.Services.AddSingleton<JwtService>();
 builder.Services.AddDbContext<DataBaseContext>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<UserReposytory>();
+builder.Services.AddScoped<BreanchRepository>();
+builder.Services.AddScoped<MessageRepository>();
 builder.Services.AddScoped<AuthService>();
 // 2. Регистрируем конфигуратор для JwtBearerOptions
 builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, JwtBearerOptionsConfigurator>();
@@ -78,6 +80,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
-app.MapHub<ChatHub>("/chat");   // ChatHub будет обрабатывать запросы по пути /chat
+app.MapHub<ChatHub>("/chatHub");   // ChatHub будет обрабатывать запросы по пути /chat
 
 app.Run();

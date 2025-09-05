@@ -1,0 +1,74 @@
+﻿@model Chat_SignalR.Models.Breanch
+
+@{
+    ViewData["Title"] = "Чат филиала";
+}
+
+<div class="container">
+    <h2>@Model.Name</h2>
+    <p>@Model.Description</p>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-8">
+            <div id="messagesList" class="border p-3 mb-3" style="height:400px; overflow-y:scroll;">
+                @if (Model.messages != null && Model.messages.Any())
+                {
+                    foreach (var msg in Model.messages)
+                    {
+                        <div>
+                            <strong>@msg.User?.name</strong>: @msg.Text
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-muted" id="del">Сообщений пока нет...</div>
+                }
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="messageInput" class="form-control" placeholder="Введите сообщение..." />
+                <button id="sendButton" class="btn btn-primary">Отправить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/9.0.6/signalr.min.js"></script>
+    <script>
+        const breanchId = @Model.Id;
+
+        // Создаем подключение
+            const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub?breanchId=" + breanchId) // обязательно совпадает с MapHub
+        .withAutomaticReconnect()
+        .build();
+
+        connection.on("ReceiveMessage", function (user, message) {
+            const msg = document.createElement("div");
+            msg.innerHTML = "<strong>" + user + "</strong>: " + message;
+            document.getElementById("messagesList").appendChild(msg);
+
+            // автоскролл вниз
+            document.getElementById("messagesList").scrollTop =
+                document.getElementById("messagesList").scrollHeight;
+        });
+
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        document.getElementById("sendButton").addEventListener("click", function (event) {
+            const message = document.getElementById("messageInput").value;
+                    connection.invoke("SendMessageToBreanch", breanchId, message)
+        .catch(function (err) {
+                return console.error(err.toString());
+            });
+            document.getElementById("messageInput").value = "";
+            event.preventDefault();
+        });
+    </script>
+}

@@ -8,5 +8,7 @@
         virtual public long BreanchId { get; set; }
         public User User { get; set; }
        virtual public long UserId { get; set; }
+
+        public string Text { get; set; }
     }
 }
