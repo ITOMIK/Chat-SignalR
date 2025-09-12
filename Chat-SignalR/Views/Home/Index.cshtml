@@ -1,7 +1,9 @@
 ﻿@model IEnumerable<Chat_SignalR.Models.Breanch>
+@using Microsoft.AspNetCore.Authorization
 
 @{
     ViewData["Title"] = "Список филиалов";
+
 }
 
 <div class="container mt-4">
@@ -21,8 +23,8 @@
                             </p>
                             <div class="mt-auto">
                                 <a href="@Url.Action("Breanch", "Home", new { id = branch.Id })"
-                                   class="btn btn-primary w-100">
-                                    Открыть чат
+                                class="btn btn-primary w-100">
+                                    Открыть ветку
                                 </a>
                             </div>
                         </div>
@@ -33,6 +35,90 @@
     }
     else
     {
-        <div class="alert alert-info">Филиалов пока нет</div>
+        <div class="alert alert-info">Вееток пока нет</div>
+    }
+    @if (User.IsInRole("Admin"))
+    {
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBranchModal">
+            Создать ветку
+        </button>
+
+        <div class="modal fade" id="createBranchModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Создать ветку</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="createBranchAlert" class="alert d-none"></div>
+                        <form id="createBranchForm">
+                            <div class="mb-3">
+                                <label for="branchName" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="branchName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="branchDescription" class="form-label">Описание</label>
+                                <input type="text" class="form-control" id="branchDescription">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="submitCreateBranch" class="btn btn-primary">Создать</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 </div>
+
+<script>
+       document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация Bootstrap модалки
+        var createModalEl = document.getElementById('createBranchModal');
+        var createModal = new bootstrap.Modal(createModalEl);
+
+        var createForm = document.getElementById('createBranchForm');
+        var submitBtn = document.getElementById('submitCreateBranch');
+        var alertEl = document.getElementById('createBranchAlert');
+
+        // При открытии модалки очищаем форму и alert
+        createModalEl.addEventListener('show.bs.modal', function () {
+            createForm.reset();
+            alertEl.textContent = '';
+            alertEl.className = 'alert d-none';
+        });
+
+        submitBtn.addEventListener('click', async function() {
+            var name = document.getElementById('branchName').value.trim();
+            var desc = document.getElementById('branchDescription').value.trim();
+
+            if (!name) {
+                alertEl.textContent = 'Имя обязательно.';
+                alertEl.className = 'alert alert-danger';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/ApiBreanches/createBreanch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Name: name, Description: desc }),
+                });
+
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                alertEl.textContent = 'Ветка создана.';
+                alertEl.className = 'alert alert-success';
+
+                setTimeout(() => createModal.hide(), 800);
+                 window.location.reload();
+
+            } catch (err) {
+                alertEl.textContent = 'Ошибка создания: ' + err.message;
+                alertEl.className = 'alert alert-danger';
+            }
+        });
+    });
+
+</script>

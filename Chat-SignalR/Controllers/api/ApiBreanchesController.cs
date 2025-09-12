@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chat_SignalR.Controllers.api
 {
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class ApiBreanchesController : Controller
     {
         private readonly BreanchRepository repository;
@@ -16,7 +18,7 @@ namespace Chat_SignalR.Controllers.api
         }
 
         [HttpPost("createBreanch")]
-        public async Task<IActionResult> RegisterNewBreanch(BreanchModel model)
+        public async Task<IActionResult> RegisterNewBreanch([FromBody] BreanchModel model)
         {
             if (ModelState.IsValid)
             {
@@ -29,6 +31,12 @@ namespace Chat_SignalR.Controllers.api
                 return BadRequest(ModelState);
             }
 
+        }
+
+        public async Task<IActionResult> DeleteBreanch(int id)
+        {
+            await repository.Remove(id);
+            return Ok();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿@model Chat_SignalR.Models.Breanch
 
 @{
-    ViewData["Title"] = "Чат филиала";
+    ViewData["Title"] = "Ветка";
 }
 
 <div class="container">
@@ -43,11 +43,15 @@
 
         // Создаем подключение
             const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/chatHub?breanchId=" + breanchId) // обязательно совпадает с MapHub
+        .withUrl("/chatHub?breanchId=" + breanchId) 
         .withAutomaticReconnect()
         .build();
 
         connection.on("ReceiveMessage", function (user, message) {
+            const todel = document.getElementById('del');
+            if(todel!==null){
+                todel.innerHTML="";
+            }
             const msg = document.createElement("div");
             msg.innerHTML = "<strong>" + user + "</strong>: " + message;
             document.getElementById("messagesList").appendChild(msg);

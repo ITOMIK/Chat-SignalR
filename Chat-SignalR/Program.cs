@@ -1,4 +1,4 @@
-using Chat_SignalR.Data;
+п»їusing Chat_SignalR.Data;
 using Chat_SignalR.Repositories;
 using Chat_SignalR.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,16 +12,17 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSignalR().AddHubOptions<ChatHub>(options => options.EnableDetailedErrors = true);      // подключема сервисы SignalR
+builder.Services.AddSignalR().AddHubOptions<ChatHub>(options => options.EnableDetailedErrors = true);      // РїРѕРґРєР»СЋС‡РµРјР° СЃРµСЂРІРёСЃС‹ SignalR
 
 
-// 1. Подключаем настройки из appsettings.json
+// 1. РџРѕРґРєР»СЋС‡Р°РµРј РЅР°СЃС‚СЂРѕР№РєРё РёР· appsettings.json
 builder.Services.Configure<AuthOptions>(
     builder.Configuration.GetSection(AuthOptions.SectionName));
 
@@ -32,54 +33,66 @@ builder.Services.AddScoped<UserReposytory>();
 builder.Services.AddScoped<BreanchRepository>();
 builder.Services.AddScoped<MessageRepository>();
 builder.Services.AddScoped<AuthService>();
-// 2. Регистрируем конфигуратор для JwtBearerOptions
+// 2. Р РµРіРёСЃС‚СЂРёСЂСѓРµРј РєРѕРЅС„РёРіСѓСЂР°С‚РѕСЂ РґР»СЏ JwtBearerOptions
 builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, JwtBearerOptionsConfigurator>();
 
-// 3. Добавляем авторизацию и аутентификацию
+// 3. Р”РѕР±Р°РІР»СЏРµРј Р°РІС‚РѕСЂРёР·Р°С†РёСЋ Рё Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёСЋ
+builder.Services.AddAuthentication("JwtCookie")
+    .AddScheme<AuthenticationSchemeOptions, JwtCookieAuthenticationHandler>("JwtCookie", options => { });
 builder.Services.AddAuthorization();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-
+// dev swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
 }
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.Strict,
     HttpOnly = HttpOnlyPolicy.Always,
     Secure = CookieSecurePolicy.Always
 });
-
 app.UseStaticFiles();
 
 app.UseRouting();
 
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == 401) // РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
+    {
+        context.Response.Redirect("/Auth/Login");
+    }
+    else if (context.Response.StatusCode == 403) // РЅРµС‚ РґРѕСЃС‚СѓРїР°
+    {
+        context.Response.Redirect("/Home/AccessDenied");
+    }
+});
+
+
+// РЎРЅР°С‡Р°Р»Р° Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёСЏ
+app.UseAuthentication();
+
+//РїРѕС‚РѕРј Р°РІС‚РѕСЂРёР·Р°С†РёСЏ
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
-app.MapHub<ChatHub>("/chatHub");   // ChatHub будет обрабатывать запросы по пути /chat
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
+

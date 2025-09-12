@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chat_SignalR.Controllers.api
 {
+    [Route("api/[controller]")]
     public class ApiAuthController : Controller
     {
         private readonly AuthService authService;
@@ -12,13 +13,13 @@ namespace Chat_SignalR.Controllers.api
             authService = _authService;
         }
         [HttpPost("reg")]
-        public async Task<IActionResult> Register(RegisterModel model)
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             if (ModelState.IsValid)
             {
                
                     var token = await authService.RegisterAsync(model);
-                    if (token != null)
+                    if (!String.IsNullOrEmpty(token))
                     {
                     authService.setTokenToCookie(HttpContext, token);
                     return Ok();
@@ -36,7 +37,7 @@ namespace Chat_SignalR.Controllers.api
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginModel model)
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             if (ModelState.IsValid)
             {

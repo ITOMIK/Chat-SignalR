@@ -1,5 +1,76 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Вход";
 }
+
+<div class="container mt-5" style="max-width: 400px;">
+    <h2 class="mb-4">Вход</h2>
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+    <div id="userInfo" class="alert alert-success d-none">
+        Привет, <strong id="username"></strong>!
+        <buttion id="logoutBtn" class="btn btn-danger btn-sm ms-2">Выйти</buttion>
+    </div>
+    
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="login" class="form-label">Логин</label>
+                <input type="text" class="form-control" id="login" name="Login" required />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Пароль</label>
+                <input type="password" class="form-control" id="password" name="Password" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Войти</button>
+        </form>
+        <strong>Нету акаунта? -</strong> <a asp-action="Register" asp-controller="Auth">Зарегистрируйтесь!</a>
+    }
+    else{
+    <div class="alert alert-success">
+            Привет, <strong id="username">@User.Identity.Name</strong>!
+        <button id="logoutBtn" class="btn btn-danger btn-sm ms-2">Выйти</button>
+    </div>
+    }
+    <div id="errorMsg" class="alert alert-danger mt-3 d-none"></div>
+    
+</div>
+
+<script>
+    const a = document.getElementById('loginForm');
+    if(a){
+    a.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+        const response = await fetch('/api/ApiAuth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: login, password: password })
+        });
+        if (response.ok) {
+            const userInfoDiv = document.getElementById('userInfo');
+            userInfoDiv.classList.remove('d-none');
+            document.getElementById('username').textContent = login;
+
+            document.getElementById('loginForm').classList.add('d-none');
+            document.getElementById('errorMsg').classList.add('d-none');
+            window.location.reload();
+        } else {
+            const errorText = await response.text();
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = errorText;
+            errorDiv.classList.remove('d-none');
+        }
+    });
+    }
+        const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            const response = await fetch('/api/ApiAuth/logout', { method: 'POST', credentials: 'include' });
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+    }
+</script>

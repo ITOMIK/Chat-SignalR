@@ -1,0 +1,57 @@
+﻿@{
+    ViewData["Title"] = "Вход";
+}
+
+<div class="container mt-5" style="max-width: 400px;">
+    <h2 class="mb-4">Регистрация</h2>
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="login" class="form-label">Логин</label>
+                <input type="text" class="form-control" id="login" name="Login" required />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Пароль</label>
+                <input type="password" class="form-control" id="password" name="Password" required />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Повторите пароль</label>
+                <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Зарегестрироваться</button>
+        </form>
+    }
+    <div id="errorMsg" class="alert alert-danger mt-3 d-none"></div>
+</div>
+
+<script>
+    if("@User.Identity?.IsAuthenticated.ToString()" !="False"){
+        window.location.href = 'Login';
+    }
+    const a = document.getElementById('loginForm');
+    if(a){
+    a.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const response = await fetch('/api/ApiAuth/reg', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: login, password: password, confirmPassword: confirmPassword })
+        });
+        if (response.ok) {
+            window.location.href = 'Login';
+        } else {
+            const errorText = await response.text();
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = errorText;
+            errorDiv.classList.remove('d-none');
+        }
+    });
+    }
+     
+</script>

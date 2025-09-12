@@ -20,7 +20,8 @@ namespace Chat_SignalR.Services
         public string GenerateToken(User user)
         {
             List<Claim> claims = new List<Claim>{
-                new("userId", user.publicId.ToString())
+                new("userId", user.publicId.ToString()),
+                new Claim(ClaimTypes.Name, user.name)
             };
             foreach (var role in user.roles)
             {
